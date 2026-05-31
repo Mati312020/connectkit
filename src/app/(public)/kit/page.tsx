@@ -268,6 +268,40 @@ export default function ConnectKitLandingPage() {
         </div>
       </section>
 
+      {/* ── Demo credentials ── */}
+      <section className="py-20 px-4 border-b bg-muted/20" id="demo">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-2xl font-bold mb-3">Probá la demo en vivo</h2>
+          <p className="text-muted-foreground mb-10 text-sm">
+            Accedé con cualquiera de estas cuentas para explorar los tres roles del marketplace.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+            {[
+              { rol: "Admin",     email: "admin@demo.connectkit.com",      color: "border-red-500/40 bg-red-500/5",    badge: "bg-red-500/10 text-red-400" },
+              { rol: "Proveedor", email: "proveedor@demo.connectkit.com",  color: "border-blue-500/40 bg-blue-500/5",  badge: "bg-blue-500/10 text-blue-400" },
+              { rol: "Cliente",   email: "cliente@demo.connectkit.com",    color: "border-green-500/40 bg-green-500/5", badge: "bg-green-500/10 text-green-400" },
+            ].map(({ rol, email, color, badge }) => (
+              <div key={rol} className={`rounded-xl border p-5 space-y-3 ${color}`}>
+                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${badge}`}>{rol}</span>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="text-xs font-mono break-all">{email}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Password</p>
+                  <p className="text-sm font-mono font-semibold tracking-widest">Demo1234!</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-8">
+            <Link href={PRODUCT.demoUrl} className={cn(buttonVariants({ size: "lg" }), "text-base")}>
+              Abrir demo →
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ── FAQ ── */}
       <section className="py-20 px-4 border-b">
         <div className="max-w-3xl mx-auto">
