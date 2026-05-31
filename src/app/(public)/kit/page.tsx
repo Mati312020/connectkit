@@ -14,7 +14,7 @@ const PRODUCT = {
   prices: {
     starter: { label: "Starter",   usd: 79,  features: ["Código fuente completo", "Docs de setup", "5 actualizaciones"] },
     pro:     { label: "Pro",       usd: 129, features: ["Todo Starter", "Email de soporte 30 días", "10 actualizaciones"] },
-    team:    { label: "Con soporte", usd: 199, features: ["Todo Pro", "1h de onboarding por videollamada", "Actualizaciones de por vida"] },
+    team:    { label: "Con soporte", usd: 199, features: ["Todo Pro", "Soporte por email prioritario", "Actualizaciones de por vida"] },
   },
 };
 
@@ -92,7 +92,7 @@ const FAQS = [
   },
   {
     q: "¿Qué pasa si tengo preguntas durante el setup?",
-    a: "El plan Pro incluye soporte por email durante 30 días. El plan con soporte incluye una hora de onboarding por videollamada.",
+    a: "El plan Pro incluye soporte por email durante 30 días. El plan Con soporte incluye soporte por email prioritario y actualizaciones de por vida.",
   },
   {
     q: "¿Cómo recibo las actualizaciones?",
