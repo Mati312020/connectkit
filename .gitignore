@@ -30,8 +30,13 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files — .env.example SÍ se commitea como referencia
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
 
 # vercel
 .vercel
@@ -39,3 +44,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/src/generated/prisma
+
+# Docs de referencia interna (no van al repo público)
+/_docs-ref/

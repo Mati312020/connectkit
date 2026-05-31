@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ConnectKit
 
-## Getting Started
+> Boilerplate para construir marketplaces de servicios en Latinoamérica.
+> Next.js 14 + Supabase + Mercado Pago + Facturación ARCA lista para usar.
 
-First, run the development server:
+## Features
+
+- **Auth completa** — Supabase Auth con 3 roles (admin/proveedor/cliente)
+- **Sistema de reservas** — calendario de disponibilidad y booking flow
+- **Mercado Pago integrado** — preferencias, webhooks, suscripciones
+- **Facturación fiscal ARCA** — Factura C (local) y Factura E (exportación)
+- **Dashboard admin** — métricas, usuarios, comprobantes
+- **PWA ready** — instalable desde el navegador
+- **100% personalizable** — un solo archivo de config para cambiar todo
+
+## Stack
+
+- **Framework:** Next.js 14 (App Router)
+- **Base de datos:** Supabase (PostgreSQL)
+- **ORM:** Prisma
+- **UI:** Tailwind CSS + shadcn/ui
+- **Pagos:** Mercado Pago SDK
+- **Facturación:** ARCA/AFIP (WSAA + WSFE)
+- **Email:** Resend
+- **Deploy:** Railway / Vercel
+
+## Quick Start
 
 ```bash
+git clone https://github.com/tu-usuario/connectkit
+cd connectkit
+npm install
+cp .env.example .env.local
+# Completar variables en .env.local
+npx prisma migrate dev --name init
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ver [docs/setup.md](docs/setup.md) para guía completa.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Personalización
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Todo el comportamiento del marketplace se configura desde un solo archivo:
 
-## Learn More
+```
+src/config/app.config.ts
+```
 
-To learn more about Next.js, take a look at the following resources:
+Cambiá el nombre, vocabulario, comisiones, features y colores sin tocar
+ningún otro archivo. Ver [docs/customization.md](docs/customization.md).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Mercado Pago
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Ver [docs/payments.md](docs/payments.md) para configurar tu cuenta de MP.
 
-## Deploy on Vercel
+## Facturación ARCA
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+La facturación fiscal requiere alta previa en ARCA como monotributista o
+responsable inscripto. Ver [docs/invoicing.md](docs/invoicing.md).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deploy
+
+Ver [docs/deploy.md](docs/deploy.md) para instrucciones en Railway + Supabase.
+
+## Licencia
+
+MIT — podés usarlo para proyectos personales y comerciales.

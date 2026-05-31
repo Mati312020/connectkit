@@ -1,0 +1,306 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ── Usuarios ─────────────────────────────────────────────────
+model User {
+  id         String     @id @default(cuid())
+  supabaseId String     @unique @map("supabase_id")
+  email      String     @unique
+  name       String?
+  phone      String?
+  avatarUrl  String?    @map("avatar_url")
+  role       UserRole   @default(CLIENT)
+  status     UserStatus @default(PENDING)
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+
+  providerProfile    ProviderProfile?
+  clientProfile      ClientProfile?
+  bookingsAsClient   Booking[]        @relation("ClientBookings")
+  bookingsAsProvider Booking[]        @relation("ProviderBookings")
+  payments           Payment[]
+  invoices           Invoice[]
+  subscriptions      Subscription[]
+  activityLogs       ActivityLog[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  PROVIDER
+  CLIENT
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  VERIFIED
+}
+
+// ── Perfil del Proveedor ──────────────────────────────────────
+model ProviderProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique @map("user_id")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio          String?
+  hourlyRate   Int      @default(3450) @map("hourly_rate")
+  categories   String[]
+  location     String?
+  rating       Float    @default(0)
+  totalReviews Int      @default(0) @map("total_reviews")
+  isVerified   Boolean  @default(false) @map("is_verified")
+  slug         String   @unique
+
+  availability Availability[]
+  reviews      Review[]
+
+  @@map("provider_profiles")
+}
+
+// ── Perfil del Cliente ────────────────────────────────────────
+model ClientProfile {
+  id      String  @id @default(cuid())
+  userId  String  @unique @map("user_id")
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address String?
+  notes   String?
+
+  @@map("client_profiles")
+}
+
+// ── Disponibilidad del Proveedor ──────────────────────────────
+model Availability {
+  id          String          @id @default(cuid())
+  providerId  String          @map("provider_id")
+  provider    ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  dayOfWeek   Int             @map("day_of_week") // 0=Domingo ... 6=Sábado
+  startTime   String          @map("start_time")  // "09:00"
+  endTime     String          @map("end_time")    // "18:00"
+  isAvailable Boolean         @default(true) @map("is_available")
+
+  @@map("availability")
+}
+
+// ── Reservas ──────────────────────────────────────────────────
+model Booking {
+  id            String        @id @default(cuid())
+  clientId      String        @map("client_id")
+  client        User          @relation("ClientBookings", fields: [clientId], references: [id])
+  providerId    String        @map("provider_id")
+  provider      User          @relation("ProviderBookings", fields: [providerId], references: [id])
+  startDateTime DateTime      @map("start_date_time")
+  endDateTime   DateTime      @map("end_date_time")
+  totalHours    Float         @map("total_hours")
+  baseAmount    Int           @map("base_amount")   // en centavos ARS
+  clientFee     Int           @map("client_fee")    // comisión del cliente (9%)
+  providerFee   Int           @map("provider_fee")  // comisión del proveedor (6%)
+  totalAmount   Int           @map("total_amount")  // lo que paga el cliente
+  status        BookingStatus @default(PENDING)
+  notes         String?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  payment Payment?
+  invoice Invoice?
+  review  Review?
+
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+// ── Pagos (Mercado Pago) ──────────────────────────────────────
+model Payment {
+  id             String        @id @default(cuid())
+  bookingId      String        @unique @map("booking_id")
+  booking        Booking       @relation(fields: [bookingId], references: [id])
+  userId         String        @map("user_id")
+  user           User          @relation(fields: [userId], references: [id])
+  mpPreferenceId String?       @map("mp_preference_id")
+  mpPaymentId    String?       @map("mp_payment_id")
+  mpStatus       String?       @map("mp_status")
+  amount         Int
+  currency       String        @default("ARS")
+  status         PaymentStatus @default(PENDING)
+  paidAt         DateTime?     @map("paid_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  @@map("payments")
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  APPROVED
+  REJECTED
+  REFUNDED
+  CANCELLED
+}
+
+// ── Facturas ARCA ─────────────────────────────────────────────
+model Invoice {
+  id            String        @id @default(cuid())
+  bookingId     String        @unique @map("booking_id")
+  booking       Booking       @relation(fields: [bookingId], references: [id])
+  userId        String        @map("user_id")
+  user          User          @relation(fields: [userId], references: [id])
+  cae           String?
+  caeExpiry     DateTime?     @map("cae_expiry")
+  voucherType   Int           @map("voucher_type") // 11=Factura C, 19=Factura E
+  voucherNumber Int?          @map("voucher_number")
+  puntoVenta    Int           @map("punto_venta")
+  concept       Int           @default(3) // 1=Productos, 2=Servicios, 3=Ambos
+  totalAmount   Float         @map("total_amount")
+  currency      String        @default("ARS")
+  pdfUrl        String?       @map("pdf_url")
+  status        InvoiceStatus @default(PENDING)
+  emittedAt     DateTime?     @map("emitted_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  @@map("invoices")
+}
+
+enum InvoiceStatus {
+  PENDING
+  EMITTED
+  ERROR
+  CANCELLED
+}
+
+// ── Reseñas ───────────────────────────────────────────────────
+model Review {
+  id         String          @id @default(cuid())
+  bookingId  String          @unique @map("booking_id")
+  booking    Booking         @relation(fields: [bookingId], references: [id])
+  providerId String          @map("provider_id")
+  provider   ProviderProfile @relation(fields: [providerId], references: [id])
+  rating     Int             // 1-5
+  comment    String?
+  createdAt  DateTime        @default(now()) @map("created_at")
+
+  @@map("reviews")
+}
+
+// ── Suscripciones ─────────────────────────────────────────────
+model Subscription {
+  id               String             @id @default(cuid())
+  userId           String             @map("user_id")
+  user             User               @relation(fields: [userId], references: [id])
+  mpSubscriptionId String?            @map("mp_subscription_id")
+  plan             SubscriptionPlan
+  status           SubscriptionStatus @default(ACTIVE)
+  currentPeriodEnd DateTime?          @map("current_period_end")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+
+  @@map("subscriptions")
+}
+
+enum SubscriptionPlan {
+  BASIC
+  PREMIUM
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  PAST_DUE
+}
+
+// ── Logs del sistema ──────────────────────────────────────────
+// Retención configurable en app.config.ts → logs.retentionMonths
+// La limpieza se dispara desde /api/logs/cleanup (admin o cron)
+model ActivityLog {
+  id        String      @id @default(cuid())
+  type      LogEventType
+  source    LogSource   @default(CLIENT)
+  userId    String?     @map("user_id")     // null = acción anónima
+  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  metadata  Json        @default("{}")      // datos específicos del evento
+  ip        String?                         // IP del cliente (eventos cliente)
+  userAgent String?     @map("user_agent")
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  @@index([type])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
+
+enum LogSource {
+  CLIENT  // disparado desde el browser del usuario
+  SERVER  // disparado desde una API route o webhook
+  SYSTEM  // procesos automáticos (cron, cleanup, etc.)
+}
+
+enum LogEventType {
+  // ── Auth ─────────────────────────────────────────────
+  USER_REGISTER
+  USER_LOGIN
+  USER_LOGOUT
+  USER_PASSWORD_RESET
+
+  // ── Perfil ───────────────────────────────────────────
+  PROFILE_UPDATED
+  AVAILABILITY_UPDATED
+  PROVIDER_VERIFIED
+
+  // ── Reservas ─────────────────────────────────────────
+  BOOKING_CREATED
+  BOOKING_CONFIRMED
+  BOOKING_CANCELLED
+  BOOKING_COMPLETED
+  BOOKING_REFUNDED
+
+  // ── Pagos ─────────────────────────────────────────────
+  PAYMENT_INITIATED
+  PAYMENT_APPROVED
+  PAYMENT_REJECTED
+  PAYMENT_REFUNDED
+  SUBSCRIPTION_CREATED
+  SUBSCRIPTION_CANCELLED
+
+  // ── Facturación ───────────────────────────────────────
+  INVOICE_EMITTED
+  INVOICE_ERROR
+  PDF_GENERATED
+  PDF_ERROR
+
+  // ── Reseñas ───────────────────────────────────────────
+  REVIEW_SUBMITTED
+
+  // ── Onboarding ────────────────────────────────────────
+  ONBOARDING_COMPLETED
+
+  // ── Admin ─────────────────────────────────────────────
+  ADMIN_LOGIN
+  ADMIN_USER_STATUS_CHANGED
+  ADMIN_SETTINGS_UPDATED
+  ADMIN_LOGS_CLEANUP
+
+  // ── Sistema ───────────────────────────────────────────
+  WEBHOOK_RECEIVED
+  EMAIL_SENT
+  EMAIL_ERROR
+  SYSTEM_ERROR
+}
