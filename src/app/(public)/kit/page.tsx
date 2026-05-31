@@ -8,7 +8,7 @@ const PRODUCT = {
   name:       "ConnectKit",
   tagline:    "El boilerplate para lanzar tu marketplace de servicios en Argentina",
   subtitle:   "Next.js 16 + Supabase + Mercado Pago + Facturación ARCA — todo conectado, listo para usar.",
-  gumroadUrl: "https://gumroad.com/l/connectkit", // reemplazar con tu URL real
+  gumroadUrl: "https://bytecraftsebastian.gumroad.com/l/wlxlb",
   demoUrl:    "/",
   githubUrl:  "#", // reemplazar
   prices: {
